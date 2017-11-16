@@ -57,7 +57,7 @@
     }
 
     var dateTimePicker = function (element, options) {
-        var picker = {},
+            var picker = {},
             date,
             viewDate,
             dates = [],
@@ -485,6 +485,9 @@
                         return;
                     }
                 }
+                if (e.type === 'dp.hide') {
+                    options.resetSelection = true;
+                }
                 element.trigger(e);
             },
 
@@ -762,6 +765,9 @@
 
                 currentDate = viewDate.clone().startOf('M').startOf('w').startOf('d');
 
+                var minDate = moment.min(dates);
+                var maxDate = moment.max(dates);
+
                 for (i = 0; i < 42; i++) { //always display 42 days (should show 6 weeks)
                     if (currentDate.weekday() === 0) {
                         row = $('<tr>');
@@ -779,8 +785,15 @@
                     }
 
                     if (options.multiDate) {
-                        if (findDate(currentDate)) {
-                            clsNames.push('active');
+                        if (minDate.isSame(maxDate)) {
+                            if (findDate(currentDate)) {
+                                clsNames.push('active');
+                            }
+                        } else {
+                            // mark all days between min and max date with active class
+                            if (minDate.isSameOrBefore(currentDate) && maxDate.isSameOrAfter(currentDate)) {
+                                clsNames.push('active');
+                            }
                         }
                     } else {
                         if (currentDate.isSame(date, 'd') && !unset) {
@@ -938,6 +951,16 @@
                         dates = targetMoment;
                         date = targetMoment[0];
                     } else {
+                        if (Array.isArray(oldDate) && oldDate.length === options.multiDateLimit) {
+                            dates = [];
+                            clear();
+                            update();
+                        }
+                        if (oldDate.length !== 0 && options.resetSelection) {
+                            options.resetSelection = false;
+                            clear();
+                            update();
+                        }
                         targetMoment = targetMoment.clone().locale(options.locale);
                         dates = $.grep(dates, function (item) {
                             if (targetMoment.isSame(item, 'd')) {
@@ -946,6 +969,10 @@
                             return !targetMoment.isSame(item, 'd');
                         });
                         if (!dateRemoved) {
+                            if (oldDate.length === options.multiDateLimit && !targetMoment.isBetween(oldDate[0], oldDate[options.multiDateLimit - 1])) {
+                                clear();
+                                update();
+                            }
                             dates.push(targetMoment);
                         } else {
                             if (dates.length === 0) {
@@ -967,8 +994,13 @@
                     displayDates = $.map(dates, function (item) {
                         return item.format(actualFormat);
                     });
-                    input.val(displayDates.join(options.multiDateDelimiter));
-                    element.data('date', displayDates.join(options.multiDateDelimiter));
+                    var result = displayDates.join(options.multiDateDelimiter);
+                    if (Array.isArray(dates) && dates.length === options.multiDateLimit) {
+                        input.val('Interval');
+                    } else {
+                        input.val(result);
+                    }
+                    element.data('date', result);
                     unset = false;
                     update();
                     notifyEvent({
@@ -1202,7 +1234,7 @@
                         day.add(1, 'M');
                     }
                     setValue(day.date(parseInt($(e.target).text(), 10)));
-                    if (!hasTime() && !options.keepOpen && !options.inline) {
+                    if (!hasTime() && !options.keepOpen && !options.inline && options.multiDate && options.multiDateLimit === dates.length) {
                         hide();
                     }
                 },
@@ -1381,7 +1413,11 @@
                 }
                 if (input.val() !== undefined && input.val().trim().length !== 0) {
                     if (options.multiDate) {
-                        currentMoment = parseInputDate(input.val().trim().split(options.multiDateDelimiter));
+                        var interalData = $.map(dates, function(date) {
+                            return date.format(actualFormat)
+                        });
+                        currentMoment = parseInputDate(interalData);
+                        //currentMoment = parseInputDate(input.val().trim().split(options.multiDateDelimiter));
                     } else {
                         currentMoment = parseInputDate(input.val().trim());
                     }
@@ -2392,6 +2428,19 @@
             return picker;
         };
 
+        picker.multiDateLimit = function (multiDateLimit) {
+            if (arguments.length === 0) {
+                return options.multiDateLimit;
+            }
+
+            if (typeof multiDateLimit !== 'number') {
+                throw new TypeError('multiDateLimit() expects a integer parameter');
+            }
+
+            options.multiDateLimit = multiDateLimit;
+            return picker;
+        }
+
         picker.datepickerInput = function (datepickerInput) {
             if (arguments.length === 0) {
                 return options.datepickerInput;
@@ -2705,6 +2754,7 @@
     $.fn.datetimepicker.defaults = {
         multiDate: false,
         multiDateDelimiter: ',',
+        multiDateLimit: 2,
         timeZone: '',
         format: false,
         dayViewHeaderFormat: 'MMMM YYYY',
