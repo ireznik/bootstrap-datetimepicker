@@ -1234,8 +1234,14 @@
                         day.add(1, 'M');
                     }
                     setValue(day.date(parseInt($(e.target).text(), 10)));
-                    if (!hasTime() && !options.keepOpen && !options.inline && options.multiDate && options.multiDateLimit === dates.length) {
-                        hide();
+                    if (!hasTime() && !options.keepOpen && !options.inline) {
+                        // close datetimepicker widget after selection
+                        if (!options.multiDate) {
+                            hide();
+                            // close datetimepicker widget after selection of selected amount of dates (options.multiDateLimit)
+                        } else if (options.multiDate && options.multiDateLimit === dates.length) {
+                            hide();
+                        }
                     }
                 },
 
