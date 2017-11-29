@@ -57,7 +57,7 @@
     }
 
     var dateTimePicker = function (element, options) {
-            var picker = {},
+        var picker = {},
             date,
             viewDate,
             dates = [],
@@ -197,38 +197,38 @@
                         .append($('<tr>')
                             .append($('<th>').addClass('prev').attr('data-action', 'previous')
                                 .append($('<span>').addClass(options.icons.previous))
-                                )
+                            )
                             .append($('<th>').addClass('picker-switch').attr('data-action', 'pickerSwitch').attr('colspan', (options.calendarWeeks ? '6' : '5')))
                             .append($('<th>').addClass('next').attr('data-action', 'next')
                                 .append($('<span>').addClass(options.icons.next))
-                                )
-                            ),
+                            )
+                        ),
                     contTemplate = $('<tbody>')
                         .append($('<tr>')
                             .append($('<td>').attr('colspan', (options.calendarWeeks ? '8' : '7')))
-                            );
+                        );
 
                 return [
                     $('<div>').addClass('datepicker-days')
                         .append($('<table>').addClass('table-condensed')
                             .append(headTemplate)
                             .append($('<tbody>'))
-                            ),
+                        ),
                     $('<div>').addClass('datepicker-months')
                         .append($('<table>').addClass('table-condensed')
                             .append(headTemplate.clone())
                             .append(contTemplate.clone())
-                            ),
+                        ),
                     $('<div>').addClass('datepicker-years')
                         .append($('<table>').addClass('table-condensed')
                             .append(headTemplate.clone())
                             .append(contTemplate.clone())
-                            ),
+                        ),
                     $('<div>').addClass('datepicker-decades')
                         .append($('<table>').addClass('table-condensed')
                             .append(headTemplate.clone())
                             .append(contTemplate.clone())
-                            )
+                        )
                 ];
             },
 
@@ -956,7 +956,7 @@
                             clear();
                             update();
                         }
-                        if (oldDate.length !== 0 && options.resetSelection) {
+                        if (oldDate.length > 0 && options.resetSelection) {
                             options.resetSelection = false;
                             clear();
                             update();
@@ -973,7 +973,15 @@
                                 clear();
                                 update();
                             }
-                            dates.push(targetMoment);
+                            if (dates.length > 0) {
+                                if (targetMoment.isBefore(dates[0])) {
+                                    dates.unshift(targetMoment);
+                                } else {
+                                    dates.push(targetMoment);
+                                }
+                            } else {
+                                dates.push(targetMoment);
+                            }
                         } else {
                             if (dates.length === 0) {
                                 unset = true;
@@ -1128,6 +1136,7 @@
             },
 
             clear = function () {
+                options.resetSelection = false;
                 setValue(null);
             },
 
@@ -2698,12 +2707,12 @@
      ********************************************************************************/
 
     /**
-    * See (http://jquery.com/).
-    * @name jQuery
-    * @class
-    * See the jQuery Library  (http://jquery.com/) for full details.  This just
-    * documents the function and classes that are added to jQuery by this plug-in.
-    */
+     * See (http://jquery.com/).
+     * @name jQuery
+     * @class
+     * See the jQuery Library  (http://jquery.com/) for full details.  This just
+     * documents the function and classes that are added to jQuery by this plug-in.
+     */
     /**
      * See (http://jquery.com/)
      * @name fn
