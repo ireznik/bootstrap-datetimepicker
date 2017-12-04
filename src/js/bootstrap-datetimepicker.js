@@ -969,6 +969,7 @@
                             return !targetMoment.isSame(item, 'd');
                         });
                         if (!dateRemoved) {
+                            options.resetSelection = false;
                             if (oldDate.length === options.multiDateLimit && !targetMoment.isBetween(oldDate[0], oldDate[options.multiDateLimit - 1])) {
                                 clear();
                                 update();
